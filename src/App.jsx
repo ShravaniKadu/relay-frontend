@@ -17,7 +17,7 @@ import {
 // API CLIENT — every page below calls the real FastAPI backend.
 // Change API_BASE if the backend isn't running on localhost:8000.
 // ============================================================
-const API_BASE = "http://localhost:8001/api/v1";
+const API_BASE = const API_BASE = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 class ApiError extends Error {
   constructor(message, status) { super(message); this.status = status; }
