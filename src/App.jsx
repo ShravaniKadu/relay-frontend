@@ -5,7 +5,7 @@ import {
   Plus, X, Check, CheckCheck, Send, Paperclip, Image as ImageIcon, Video, Mic,
   Smile, MoreVertical, Play, Square, Trash2, Tag, UserCog,
   ChevronRight, ChevronLeft, Eye, Pencil, Power, LogOut, Key,
-  CircleDot, Clock, Construction, ArrowDown, GitBranch, MessageCircle, Save,
+  CircleDot, Clock, Construction, ArrowDown, GitBranch, MessageCircle, Save, Menu,
   FlaskConical, Zap, ListTree, RefreshCw, AlertCircle, WifiOff
 } from "lucide-react";
 import {
@@ -17,7 +17,9 @@ import {
 // API CLIENT — every page below calls the real FastAPI backend.
 // Change API_BASE if the backend isn't running on localhost:8000.
 // ============================================================
-const API_BASE =  `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/v1`
+  : "http://localhost:8001/api/v1";
 
 class ApiError extends Error {
   constructor(message, status) { super(message); this.status = status; }
@@ -103,7 +105,129 @@ function useApiList(path, { params, enabled = true } = {}) {
 // ============================================================
 // DESIGN TOKENS
 // ============================================================
+
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');`;
+
+const RESPONSIVE_CSS = `
+  html, body, #root { margin: 0; min-height: 100%; }
+  *, *::before, *::after { box-sizing: border-box; }
+  button, input, textarea, select { max-width: 100%; }
+  .relay-shell { height: 100vh; min-height: 100vh; width: 100%; }
+  .relay-main { min-width: 0; min-height: 0; }
+  .relay-page { min-width: 0; min-height: 0; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .relay-topbar { min-height: 56px; }
+  .relay-topbar-search { width: 320px; }
+  .relay-mobile-menu-btn { display: none; }
+  .relay-mobile-overlay { display: none; }
+  .relay-page-header { flex-wrap: wrap; gap: 12px; }
+  .relay-table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .relay-table-wrap table { min-width: 680px; }
+  .relay-modal-card { max-width: calc(100vw - 24px) !important; }
+  .relay-login-form { width: min(380px, calc(100vw - 24px)) !important; }
+  .relay-chart-grid { min-width: 0; }
+  .relay-inbox { min-width: 0; }
+  .relay-kpi-card { min-width: 150px; }
+
+  @media (max-width: 768px) {
+    .relay-shell { height: 100dvh; min-height: 100dvh; }
+
+    .relay-sidebar {
+      position: fixed !important;
+      z-index: 60;
+      top: 0;
+      left: 0;
+      height: 100dvh !important;
+      width: 280px !important;
+      transform: translateX(-105%);
+      box-shadow: 12px 0 30px rgba(0,0,0,0.18);
+      transition: transform 0.22s ease;
+    }
+    .relay-sidebar.relay-sidebar-open { transform: translateX(0); }
+    .relay-sidebar-collapse { display: none !important; }
+    .relay-mobile-close { display: flex !important; }
+    .relay-mobile-overlay {
+      display: block;
+      border: 0;
+      padding: 0;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(12, 18, 15, 0.42);
+    }
+
+    .relay-mobile-menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border-radius: 7px;
+      background: transparent;
+      border: 1px solid transparent;
+    }
+    .relay-topbar {
+      padding: 10px 12px !important;
+      gap: 8px;
+    }
+    .relay-topbar-search {
+      width: auto !important;
+      flex: 1;
+      min-width: 0;
+    }
+    .relay-topbar-user-details { display: none; }
+    .relay-topbar-chevron { display: none; }
+    .relay-topbar-actions { gap: 8px !important; }
+
+    .relay-page {
+      padding: 14px 12px !important;
+    }
+    .relay-page-header { margin-bottom: 14px !important; }
+    .relay-page-header > div:first-child { min-width: 0; }
+    .relay-page-header > div:last-child { width: 100%; }
+    .relay-page-header > div:last-child > button { max-width: 100%; }
+
+    .relay-kpi-card {
+      flex: 1 1 calc(50% - 6px) !important;
+      min-width: 0 !important;
+    }
+
+    .relay-chart-grid {
+      grid-template-columns: minmax(0, 1fr) !important;
+      gap: 12px !important;
+    }
+
+    .relay-modal-card {
+      width: calc(100vw - 24px) !important;
+      max-height: 90dvh !important;
+    }
+
+    .relay-inbox {
+      height: calc(100dvh - 72px) !important;
+      flex-direction: column !important;
+    }
+    .relay-inbox-list {
+      width: 100% !important;
+      height: 40% !important;
+      max-height: 40% !important;
+      border-right: none !important;
+      border-bottom: 1px solid #DDD9D0 !important;
+    }
+    .relay-inbox-thread {
+      min-height: 0;
+      flex: 1;
+    }
+
+    .relay-flow-branches { flex-wrap: wrap; justify-content: center; gap: 20px !important; }
+  }
+
+  @media (max-width: 420px) {
+    .relay-kpi-card { flex-basis: 100% !important; }
+    .relay-topbar-search input { font-size: 12px !important; }
+    .relay-page { padding: 12px 10px !important; }
+  }
+`;
+
 
 const C = {
   bg: "#F4F6F2", panel: "#FFFFFF", panelDeep: "#ECEEE7",
@@ -159,7 +283,7 @@ function StatusPill({ status }) {
 
 function KpiCard({ label, value, accent, sub }) {
   return (
-    <div className="flex-1 min-w-[150px] px-4 py-3.5" style={{ background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8, borderLeft: `2.5px solid ${accent}` }}>
+    <div className="relay-kpi-card flex-1 min-w-[150px] px-4 py-3.5" style={{ background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8, borderLeft: `2.5px solid ${accent}` }}>
       <div className="text-[11px] font-medium mb-1.5" style={{ fontFamily: F.b, color: C.inkSoft }}>{label}</div>
       <div className="text-[21px] font-semibold" style={{ fontFamily: F.d, color: C.ink }}>{value}</div>
       {sub && <div className="text-[11px] mt-1" style={{ fontFamily: F.m, color: C.inkFaint }}>{sub}</div>}
@@ -169,7 +293,7 @@ function KpiCard({ label, value, accent, sub }) {
 
 function Table({ columns, children }) {
   return (
-    <div style={{ background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8, overflow: "hidden" }}>
+    <div className="relay-table-wrap" style={{ background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8, overflow: "hidden" }}>
       <table className="w-full border-collapse">
         <thead>
           <tr style={{ background: C.panelDeep, borderBottom: `1px solid ${C.hairline}` }}>
@@ -194,7 +318,7 @@ function IconBtn({ icon: Icon, onClick, active }) {
 function Modal({ title, onClose, children, width = 480 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(27,31,29,0.45)" }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width, maxHeight: "85vh", overflowY: "auto", background: C.panel, borderRadius: 10, border: `1px solid ${C.hairline}` }}>
+      <div className="relay-modal-card" onClick={(e) => e.stopPropagation()} style={{ width, maxHeight: "85vh", overflowY: "auto", background: C.panel, borderRadius: 10, border: `1px solid ${C.hairline}` }}>
         <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: `1px solid ${C.hairline}` }}>
           <span className="text-[14px] font-semibold" style={{ fontFamily: F.d, color: C.ink }}>{title}</span>
           <button onClick={onClose}><X size={17} color={C.inkSoft} /></button>
@@ -231,7 +355,7 @@ function EmptyState({ icon: Icon, title, desc, phase }) {
 }
 function PageHeader({ title, desc, action }) {
   return (
-    <div className="flex items-start justify-between mb-5">
+    <div className="relay-page-header flex items-start justify-between mb-5">
       <div>
         <div className="text-[19px] font-semibold" style={{ fontFamily: F.d, color: C.ink }}>{title}</div>
         {desc && <div className="text-[12.5px] mt-0.5" style={{ fontFamily: F.b, color: C.inkSoft }}>{desc}</div>}
@@ -299,7 +423,7 @@ function LoginScreen() {
 
   return (
     <div className="w-full h-full flex items-center justify-center" style={{ background: C.sidebar }}>
-      <form onSubmit={submit} style={{ width: 380, background: C.panel, borderRadius: 12 }} className="px-7 py-8">
+      <form onSubmit={submit} style={{ width: 380, background: C.panel, borderRadius: 12 }} className="relay-login-form px-7 py-8">
         <div className="flex items-center gap-2 mb-1">
           <div className="w-7 h-7 flex items-center justify-center" style={{ background: C.jade, borderRadius: 7 }}><InboxIcon size={15} color="white" /></div>
           <span className="text-[17px] font-semibold" style={{ fontFamily: F.d, color: C.ink }}>Relay CRM</span>
@@ -357,54 +481,147 @@ const NAV_SUPER = [
   { key: "settings", label: "Settings", icon: SettingsIcon },
 ];
 
-function Sidebar({ role, page, setPage }) {
+function Sidebar({ role, page, setPage, collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
   const { logout } = useAuth();
   const items = role === "super_admin" ? NAV_SUPER : NAV_ADMIN;
+
   return (
-    <div className="h-full flex flex-col shrink-0" style={{ width: 216, background: C.sidebar }}>
-      <div className="flex items-center gap-2 px-4 pt-5 pb-5">
-        <div className="w-7 h-7 flex items-center justify-center" style={{ background: C.jade, borderRadius: 7 }}><InboxIcon size={15} color="white" /></div>
-        <span className="text-[15.5px] font-semibold" style={{ fontFamily: F.d, color: "white" }}>Relay CRM</span>
+    <div
+      className={`relay-sidebar h-full flex flex-col shrink-0${mobileOpen ? " relay-sidebar-open" : ""}`}
+      style={{
+        width: collapsed ? 64 : 216,
+        background: C.sidebar,
+        transition: "width 0.2s ease",
+      }}
+    >
+      <div
+        className="flex items-center px-3 pt-5 pb-5"
+        style={{ justifyContent: collapsed ? "center" : "flex-start", position: "relative" }}
+      >
+        <div className="w-7 h-7 flex items-center justify-center shrink-0" style={{ background: C.jade, borderRadius: 7 }}>
+          <InboxIcon size={15} color="white" />
+        </div>
+        {!collapsed && (
+          <span className="text-[15.5px] font-semibold ml-2" style={{ fontFamily: F.d, color: "white" }}>
+            Relay CRM
+          </span>
+        )}
+
+        <button
+          type="button"
+          className="relay-sidebar-collapse absolute flex items-center justify-center"
+          onClick={() => setCollapsed((prev) => !prev)}
+          style={{
+            right: 6,
+            top: 22,
+            width: 20,
+            height: 20,
+            borderRadius: "50%",
+            background: C.sidebar,
+            border: `1px solid ${C.hairline}`,
+            color: "#9DB2A5",
+            zIndex: 10,
+            cursor: "pointer",
+          }}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? "→" : "←"}
+        </button>
+
+        <button
+          type="button"
+          className="relay-mobile-close items-center justify-center"
+          onClick={() => setMobileOpen(false)}
+          style={{
+            display: "none",
+            position: "absolute",
+            right: 10,
+            top: 20,
+            width: 30,
+            height: 30,
+            borderRadius: 7,
+            background: C.sidebarSoft,
+            border: "none",
+            cursor: "pointer",
+          }}
+          title="Close menu"
+        >
+          <X size={16} color="#DCE6DF" />
+        </button>
       </div>
+
       <div className="flex-1 overflow-y-auto px-2.5">
         {items.map((it) => {
           const active = page === it.key;
           const Icon = it.icon;
           return (
-            <button key={it.key} onClick={() => setPage(it.key)} className="w-full flex items-center gap-2.5 px-3 py-2 mb-0.5 text-left" style={{ borderRadius: 7, background: active ? C.sidebarSoft : "transparent" }}>
+            <button
+              key={it.key}
+              onClick={() => { setPage(it.key); setMobileOpen(false); }}
+              className="w-full flex items-center px-3 py-2 mb-0.5 text-left"
+              style={{
+                borderRadius: 7,
+                background: active ? C.sidebarSoft : "transparent",
+                justifyContent: collapsed ? "center" : "flex-start",
+                gap: collapsed ? 0 : 10,
+              }}
+              title={collapsed ? it.label : undefined}
+            >
               <Icon size={15} color={active ? "white" : "#8CA398"} />
-              <span className="text-[12.5px]" style={{ fontFamily: F.b, fontWeight: active ? 600 : 500, color: active ? "white" : "#9DB2A5" }}>{it.label}</span>
+              {!collapsed && (
+                <span className="text-[12.5px]" style={{ fontFamily: F.b, fontWeight: active ? 600 : 500, color: active ? "white" : "#9DB2A5" }}>
+                  {it.label}
+                </span>
+              )}
             </button>
           );
         })}
       </div>
+
       <div className="px-2.5 pb-4 pt-2" style={{ borderTop: `1px solid #2A3A32` }}>
-        <button onClick={logout} className="w-full flex items-center gap-2.5 px-3 py-2 text-left">
+        <button
+          onClick={logout}
+          className="w-full flex items-center px-3 py-2 text-left"
+          style={{ justifyContent: collapsed ? "center" : "flex-start", gap: collapsed ? 0 : 10 }}
+          title={collapsed ? "Sign out" : undefined}
+        >
           <LogOut size={15} color="#8CA398" />
-          <span className="text-[12.5px]" style={{ fontFamily: F.b, color: "#9DB2A5" }}>Sign out</span>
+          {!collapsed && <span className="text-[12.5px]" style={{ fontFamily: F.b, color: "#9DB2A5" }}>Sign out</span>}
         </button>
       </div>
     </div>
   );
 }
 
-function Topbar() {
+function Topbar({ onMenu }) {
   const { role, name } = useAuth();
   return (
-    <div className="flex items-center justify-between px-5 py-3 shrink-0" style={{ background: C.panel, borderBottom: `1px solid ${C.hairline}` }}>
-      <div className="flex items-center gap-2 px-3 py-1.5 w-[320px]" style={{ background: C.bg, border: `1px solid ${C.hairline}`, borderRadius: 7 }}>
-        <Search size={14} color={C.inkSoft} />
-        <input placeholder="Search contacts, numbers, campaigns..." className="bg-transparent outline-none text-[12.5px] w-full placeholder:text-[#9A9C96]" style={{ fontFamily: F.b, color: C.ink }} />
+    <div className="relay-topbar flex items-center justify-between px-5 py-3 shrink-0" style={{ background: C.panel, borderBottom: `1px solid ${C.hairline}` }}>
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <button
+          type="button"
+          className="relay-mobile-menu-btn"
+          onClick={onMenu}
+          aria-label="Open navigation"
+        >
+          <Menu size={18} color={C.inkSoft} />
+        </button>
+
+        <div className="relay-topbar-search flex items-center gap-2 px-3 py-1.5" style={{ background: C.bg, border: `1px solid ${C.hairline}`, borderRadius: 7 }}>
+          <Search size={14} color={C.inkSoft} />
+          <input placeholder="Search contacts, numbers, campaigns..." className="bg-transparent outline-none text-[12.5px] w-full placeholder:text-[#9A9C96]" style={{ fontFamily: F.b, color: C.ink }} />
+        </div>
       </div>
-      <div className="flex items-center gap-4">
+
+      <div className="relay-topbar-actions flex items-center gap-4 ml-3 shrink-0">
         <Bell size={17} color={C.inkSoft} />
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 flex items-center justify-center text-[11px] font-semibold text-white" style={{ background: C.jade, borderRadius: 7 }}>{initials(name)}</div>
-          <div>
+          <div className="relay-topbar-user-details">
             <div className="text-[12px] font-medium" style={{ fontFamily: F.b, color: C.ink }}>{name}</div>
             <div className="text-[10.5px]" style={{ fontFamily: F.b, color: C.inkFaint }}>{role === "super_admin" ? "Super Admin" : "Admin"}</div>
           </div>
-          <ChevronDown size={13} color={C.inkSoft} />
+          <ChevronDown className="relay-topbar-chevron" size={13} color={C.inkSoft} />
         </div>
       </div>
     </div>
@@ -851,8 +1068,8 @@ function InboxPage() {
   if (conversations.error) return <ErrorBanner message={conversations.error} onRetry={conversations.reload} />;
 
   return (
-    <div className="flex" style={{ height: "calc(100vh - 108px)", background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8, overflow: "hidden" }}>
-      <div className="flex flex-col shrink-0" style={{ width: 300, borderRight: `1px solid ${C.hairline}` }}>
+    <div className="relay-inbox flex" style={{ height: "calc(100vh - 108px)", background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8, overflow: "hidden" }}>
+      <div className="relay-inbox-list flex flex-col shrink-0" style={{ width: 300, borderRight: `1px solid ${C.hairline}` }}>
         <div className="px-3.5 pt-3.5 pb-2.5">
           <div className="flex gap-1">
             {[["all", "All"], ["needs_human", "Needs human"], ["bot", "Bot"]].map(([k, l]) => (
@@ -885,7 +1102,7 @@ function InboxPage() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="relay-inbox-thread flex-1 flex flex-col min-w-0">
         {!detail || detailLoading ? (
           <div className="flex-1 flex items-center justify-center text-[12.5px]" style={{ fontFamily: F.b, color: C.inkFaint }}>{detailLoading ? "Loading conversation..." : "Select a conversation"}</div>
         ) : (
@@ -1180,7 +1397,7 @@ function AutomationsPage() {
           <FlowNode label="Wait 2 hours" sub="Delay" color={C.gray} icon={Clock} />
           <FlowArrow />
           <FlowNode label="Customer replied?" sub="Condition" color={C.amber} icon={GitBranch} />
-          <div className="flex gap-10 mt-1">
+          <div className="relay-flow-branches flex gap-10 mt-1">
             <div className="flex flex-col items-center"><span className="text-[10px] font-semibold mb-1" style={{ fontFamily: F.b, color: C.jade }}>YES</span><div style={{ width: 1, height: 14, background: C.hairline }} /><FlowNode label="Transfer to human" color={C.jade} icon={UserCog} /></div>
             <div className="flex flex-col items-center"><span className="text-[10px] font-semibold mb-1" style={{ fontFamily: F.b, color: C.rust }}>NO</span><div style={{ width: 1, height: 14, background: C.hairline }} /><FlowNode label="Send follow-up" color={C.rust} icon={Send} /></div>
           </div>
@@ -1324,7 +1541,7 @@ function AnalyticsPage() {
         <KpiCard label="Conversion Rate" value={`${s.conversion_rate}%`} accent={C.jade} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="relay-chart-grid grid grid-cols-2 gap-4 mb-4">
         <ChartCard title="Messages over time" note="Illustrative">
           <LineChart data={series}>
             <CartesianGrid stroke={C.hairlineSoft} vertical={false} />
@@ -1348,7 +1565,7 @@ function AnalyticsPage() {
         </ChartCard>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="relay-chart-grid grid grid-cols-2 gap-4">
         <ChartCard title="Conversion funnel" height={240}>
           <FunnelChart>
             <Tooltip contentStyle={{ fontFamily: F.b, fontSize: 12, borderRadius: 8, border: `1px solid ${C.hairline}` }} />
@@ -1506,8 +1723,10 @@ function SettingsPage({ role }) {
 function Shell() {
   const { isAuthed, role } = useAuth();
   const [page, setPage] = useState("dashboard");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  if (!isAuthed) return <div style={{ height: 640 }}><LoginScreen /></div>;
+  if (!isAuthed) return <div className="relay-auth-screen" style={{ minHeight: "100vh" }}><LoginScreen /></div>;
 
   const pageMap = {
     dashboard: role === "super_admin" ? <SuperAdminDashboard /> : <AdminDashboard />,
@@ -1524,11 +1743,29 @@ function Shell() {
   };
 
   return (
-    <div className="flex" style={{ height: "700px", overflow: "hidden" }}>
-      <Sidebar role={role} page={page} setPage={setPage} />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar />
-        <div className="flex-1 overflow-y-auto px-5 py-5">{pageMap[page]}</div>
+    <div className="relay-shell flex" style={{ background: C.bg, overflow: "hidden" }}>
+      {mobileMenuOpen && (
+        <button
+          type="button"
+          className="relay-mobile-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-label="Close navigation"
+        />
+      )}
+
+      <Sidebar
+        role={role}
+        page={page}
+        setPage={setPage}
+        collapsed={sidebarCollapsed}
+        setCollapsed={setSidebarCollapsed}
+        mobileOpen={mobileMenuOpen}
+        setMobileOpen={setMobileMenuOpen}
+      />
+
+      <div className="relay-main flex-1 flex flex-col min-w-0 min-h-0">
+        <Topbar onMenu={() => { setSidebarCollapsed(false); setMobileMenuOpen(true); }} />
+        <div className="relay-page flex-1 px-5 py-5">{pageMap[page]}</div>
       </div>
     </div>
   );
@@ -1537,7 +1774,7 @@ function Shell() {
 export default function RelayCrmApp() {
   return (
     <div style={{ fontFamily: F.b, background: C.bg }}>
-      <style>{FONT_IMPORT}</style>
+      <style>{FONT_IMPORT + RESPONSIVE_CSS}</style>
       <AuthProvider>
         <Shell />
       </AuthProvider>
