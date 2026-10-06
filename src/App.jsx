@@ -124,8 +124,11 @@ const RESPONSIVE_CSS = `
   .relay-table-wrap table { min-width: 680px; }
   .relay-modal-card { max-width: calc(100vw - 24px) !important; }
   .relay-login-form { width: min(380px, calc(100vw - 24px)) !important; }
+  .relay-auth-screen { min-height: 100dvh !important; min-height: 100vh !important; background: #16211C; }
   .relay-chart-grid { min-width: 0; }
   .relay-inbox { min-width: 0; }
+  .relay-customer-panel { flex: 0 0 280px; }
+  .relay-inbox-back { display: none; }
   .relay-kpi-card { min-width: 150px; }
 
   @media (max-width: 768px) {
@@ -204,19 +207,34 @@ const RESPONSIVE_CSS = `
 
     .relay-inbox {
       height: calc(100dvh - 72px) !important;
-      flex-direction: column !important;
+      min-height: 0 !important;
+      display: block !important;
+      position: relative;
     }
     .relay-inbox-list {
       width: 100% !important;
-      height: 40% !important;
-      max-height: 40% !important;
+      height: 100% !important;
+      max-height: none !important;
       border-right: none !important;
-      border-bottom: 1px solid #DDD9D0 !important;
+      border-bottom: none !important;
     }
     .relay-inbox-thread {
-      min-height: 0;
-      flex: 1;
+      position: absolute !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: #FFFFFF !important;
+      z-index: 2;
     }
+    .relay-inbox.relay-inbox-show-thread .relay-inbox-list { display: none !important; }
+    .relay-inbox:not(.relay-inbox-show-thread) .relay-inbox-thread { display: none !important; }
+    .relay-inbox .relay-customer-panel { display: none !important; }
+    .relay-inbox-back { display: inline-flex !important; }
+    .relay-inbox-thread .relay-thread-messages { padding-left: 12px !important; padding-right: 12px !important; }
+    .relay-inbox-thread .relay-thread-composer { padding-left: 10px !important; padding-right: 10px !important; }
+    .relay-inbox-thread .relay-composer-icons { gap: 0 !important; }
+    .relay-inbox-thread .relay-composer-icons > button { padding: 5px !important; }
+    .relay-inbox-thread .relay-thread-input { min-width: 0 !important; }
 
     .relay-flow-branches { flex-wrap: wrap; justify-content: center; gap: 20px !important; }
   }
@@ -594,9 +612,11 @@ function Sidebar({ role, page, setPage, collapsed, setCollapsed, mobileOpen, set
 }
 
 function Topbar({ onMenu }) {
-  const { role, name } = useAuth();
+  const { role, name, logout } = useAuth();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   return (
-    <div className="relay-topbar flex items-center justify-between px-5 py-3 shrink-0" style={{ background: C.panel, borderBottom: `1px solid ${C.hairline}` }}>
+    <div className="relay-topbar flex items-center justify-between px-5 py-3 shrink-0" style={{ background: C.panel, borderBottom: `1px solid ${C.hairline}`, position: "relative", zIndex: 30 }}>
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <button
           type="button"
@@ -613,15 +633,36 @@ function Topbar({ onMenu }) {
         </div>
       </div>
 
-      <div className="relay-topbar-actions flex items-center gap-4 ml-3 shrink-0">
-        <Bell size={17} color={C.inkSoft} />
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 flex items-center justify-center text-[11px] font-semibold text-white" style={{ background: C.jade, borderRadius: 7 }}>{initials(name)}</div>
-          <div className="relay-topbar-user-details">
-            <div className="text-[12px] font-medium" style={{ fontFamily: F.b, color: C.ink }}>{name}</div>
-            <div className="text-[10.5px]" style={{ fontFamily: F.b, color: C.inkFaint }}>{role === "super_admin" ? "Super Admin" : "Admin"}</div>
-          </div>
-          <ChevronDown className="relay-topbar-chevron" size={13} color={C.inkSoft} />
+      <div className="relay-topbar-actions flex items-center gap-3 ml-3 shrink-0">
+        <div style={{ position: "relative" }}>
+          <button type="button" onClick={() => { setNotifOpen((v) => !v); setProfileOpen(false); }} className="p-1.5" aria-label="Notifications" title="Notifications">
+            <Bell size={17} color={C.inkSoft} />
+          </button>
+          {notifOpen && (
+            <div style={{ position: "absolute", right: 0, top: 38, width: 230, background: C.white, border: `1px solid ${C.hairline}`, borderRadius: 8, boxShadow: "0 10px 28px rgba(0,0,0,.12)", padding: 12 }}>
+              <div className="text-[12px] font-semibold" style={{ fontFamily: F.d, color: C.ink }}>Notifications</div>
+              <div className="text-[11px] mt-1" style={{ fontFamily: F.b, color: C.inkSoft }}>No new notifications.</div>
+            </div>
+          )}
+        </div>
+        <div style={{ position: "relative" }}>
+          <button type="button" onClick={() => { setProfileOpen((v) => !v); setNotifOpen(false); }} className="flex items-center gap-2" aria-label="Profile menu" title="Profile menu">
+            <div className="w-7 h-7 flex items-center justify-center text-[11px] font-semibold text-white" style={{ background: C.jade, borderRadius: 7 }}>{initials(name)}</div>
+            <div className="relay-topbar-user-details">
+              <div className="text-[12px] font-medium text-left" style={{ fontFamily: F.b, color: C.ink }}>{name}</div>
+              <div className="text-[10.5px] text-left" style={{ fontFamily: F.b, color: C.inkFaint }}>{role === "super_admin" ? "Super Admin" : "Admin"}</div>
+            </div>
+            <ChevronDown className="relay-topbar-chevron" size={13} color={C.inkSoft} />
+          </button>
+          {profileOpen && (
+            <div style={{ position: "absolute", right: 0, top: 38, width: 180, background: C.white, border: `1px solid ${C.hairline}`, borderRadius: 8, boxShadow: "0 10px 28px rgba(0,0,0,.12)", padding: 8 }}>
+              <div className="px-2 py-1.5">
+                <div className="text-[12px] font-medium" style={{ fontFamily: F.b, color: C.ink }}>{name}</div>
+                <div className="text-[10.5px]" style={{ fontFamily: F.b, color: C.inkFaint }}>{role === "super_admin" ? "Super Admin" : "Admin"}</div>
+              </div>
+              <button type="button" onClick={logout} className="w-full text-left px-2 py-2 text-[11.5px]" style={{ fontFamily: F.b, color: C.rust, borderRadius: 6 }}>Sign out</button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -994,7 +1035,7 @@ function CustomerPanel({ contact }) {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ borderLeft: `1px solid ${C.hairline}`, background: C.bg, width: 280 }}>
+    <div className="relay-customer-panel h-full flex flex-col" style={{ borderLeft: `1px solid ${C.hairline}`, background: C.bg, width: 280 }}>
       <div className="flex flex-col items-center py-4" style={{ borderBottom: `1px solid ${C.hairline}` }}>
         <div className="w-12 h-12 flex items-center justify-center text-[16px] font-semibold text-white mb-2" style={{ background: colorForId(contact.id), borderRadius: 9 }}>{initials(contact.name)}</div>
         <span className="text-[13.5px] font-medium" style={{ fontFamily: F.b, color: C.ink }}>{contact.name}</span>
@@ -1030,6 +1071,7 @@ function InboxPage() {
   const [showStickers, setShowStickers] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [mobileThreadOpen, setMobileThreadOpen] = useState(false);
 
   // pick the first conversation once the list loads
   useEffect(() => {
@@ -1068,7 +1110,7 @@ function InboxPage() {
   if (conversations.error) return <ErrorBanner message={conversations.error} onRetry={conversations.reload} />;
 
   return (
-    <div className="relay-inbox flex" style={{ height: "calc(100vh - 108px)", background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8, overflow: "hidden" }}>
+    <div className={`relay-inbox flex${mobileThreadOpen ? " relay-inbox-show-thread" : ""}`} style={{ height: "calc(100vh - 108px)", background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8, overflow: "hidden" }}>
       <div className="relay-inbox-list flex flex-col shrink-0" style={{ width: 300, borderRight: `1px solid ${C.hairline}` }}>
         <div className="px-3.5 pt-3.5 pb-2.5">
           <div className="flex gap-1">
@@ -1083,7 +1125,7 @@ function InboxPage() {
           {conversations.data.map((c) => {
             const active = c.id === activeConvId;
             return (
-              <button key={c.id} onClick={() => setActiveConvId(c.id)} className="w-full text-left px-3.5 py-2.5 flex items-start gap-2.5" style={{ borderBottom: `1px solid ${C.hairlineSoft}`, background: active ? C.panelDeep : "transparent", borderLeft: active ? `2px solid ${C.jade}` : "2px solid transparent" }}>
+              <button key={c.id} onClick={() => { setActiveConvId(c.id); setMobileThreadOpen(true); }} className="w-full text-left px-3.5 py-2.5 flex items-start gap-2.5" style={{ borderBottom: `1px solid ${C.hairlineSoft}`, background: active ? C.panelDeep : "transparent", borderLeft: active ? `2px solid ${C.jade}` : "2px solid transparent" }}>
                 <div className="w-8 h-8 flex items-center justify-center text-[11px] font-semibold text-white shrink-0" style={{ background: colorForId(c.contact.id), borderRadius: 7 }}>{initials(c.contact.name)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
@@ -1107,8 +1149,9 @@ function InboxPage() {
           <div className="flex-1 flex items-center justify-center text-[12.5px]" style={{ fontFamily: F.b, color: C.inkFaint }}>{detailLoading ? "Loading conversation..." : "Select a conversation"}</div>
         ) : (
           <>
-            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${C.hairline}` }}>
-              <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: `1px solid ${C.hairline}` }}>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <button type="button" className="relay-inbox-back p-1.5 shrink-0" onClick={() => setMobileThreadOpen(false)} aria-label="Back to conversations" title="Back to conversations"><ChevronLeft size={18} color={C.inkSoft} /></button>
                 <div className="w-8 h-8 flex items-center justify-center text-[11px] font-semibold text-white" style={{ background: colorForId(detail.contact.id), borderRadius: 7 }}>{initials(detail.contact.name)}</div>
                 <div>
                   <div className="text-[13px] font-medium" style={{ fontFamily: F.b, color: C.ink }}>{detail.contact.name}</div>
@@ -1117,25 +1160,27 @@ function InboxPage() {
               </div>
               {detail.status === "needs_human" && <span className="text-[10.5px] font-medium px-2 py-1" style={{ fontFamily: F.b, color: C.rust, background: C.rustSoft, borderRadius: 5 }}>Needs human</span>}
             </div>
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div className="relay-thread-messages flex-1 overflow-y-auto px-5 py-4">
               {detail.messages.length === 0 && <div className="text-[12px] text-center py-8" style={{ fontFamily: F.b, color: C.inkFaint }}>No messages yet.</div>}
               {detail.messages.map((m) => <Bubble key={m.id} msg={m} />)}
             </div>
-            <div className="px-4 py-3" style={{ borderTop: `1px solid ${C.hairline}` }}>
+            <div className="relay-thread-composer px-4 py-3" style={{ borderTop: `1px solid ${C.hairline}` }}>
               {detail._sendError && <div className="text-[11.5px] mb-2" style={{ fontFamily: F.b, color: C.rust }}>{detail._sendError}</div>}
               {showVoice ? (
                 <VoiceComposer onCancel={() => setShowVoice(false)} onSend={(secs) => { setShowVoice(false); sendMessage({ type: "voice", duration_seconds: secs, media_url: "mock://voice.ogg" }); }} />
               ) : (
                 <div className="relative flex items-end gap-1.5 px-2.5 py-1.5" style={{ border: `1px solid ${C.hairline}`, borderRadius: 10 }}>
+                  <div className="relay-composer-icons flex items-center">
                   <IconBtn icon={Paperclip} />
                   <IconBtn icon={ImageIcon} onClick={() => sendMessage({ type: "image", media_url: "mock://image.jpg" })} />
                   <IconBtn icon={Video} onClick={() => sendMessage({ type: "video", media_url: "mock://video.mp4" })} />
                   <IconBtn icon={Smile} onClick={() => setShowStickers(!showStickers)} active={showStickers} />
                   <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write a reply..." rows={1}
                     onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && draft.trim()) { e.preventDefault(); sendMessage({ type: "text", text: draft }); } }}
-                    className="flex-1 bg-transparent outline-none resize-none text-[13px] py-1.5" style={{ fontFamily: F.b, color: C.ink }} />
+                    className="relay-thread-input flex-1 bg-transparent outline-none resize-none text-[13px] py-1.5" style={{ fontFamily: F.b, color: C.ink }} />
                   <IconBtn icon={Mic} onClick={() => setShowVoice(true)} />
                   <button disabled={sending || !draft.trim()} onClick={() => sendMessage({ type: "text", text: draft })} className="p-2" style={{ background: sending ? C.gray : C.jade, borderRadius: 7 }}><Send size={14} color="white" /></button>
+                  </div>
                   {showStickers && (
                     <div className="absolute bottom-11 left-2 grid grid-cols-4 gap-1 p-2" style={{ background: C.white, border: `1px solid ${C.hairline}`, borderRadius: 8 }}>
                       {STICKERS.map((s) => <button key={s} onClick={() => { setShowStickers(false); sendMessage({ type: "sticker", media_url: `mock://sticker/${s}` }); }} className="text-[20px] p-1.5">{s}</button>)}
@@ -1369,39 +1414,134 @@ function AutomationsPage() {
   const automations = useApiList("/automations");
   const [openBuilder, setOpenBuilder] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [flowNodes, setFlowNodes] = useState([]);
+  const [editingNode, setEditingNode] = useState(null);
+  const [editForm, setEditForm] = useState({ label: "", sub: "" });
+  const [nameDraft, setNameDraft] = useState("");
+
+  const defaultNodes = [
+    { id: "trigger", type: "trigger", label: "New customer", sub: "Trigger", icon: "Zap", color: C.blue },
+    { id: "welcome", type: "action", label: "Send welcome message", sub: "Text + image", icon: "Send", color: C.jade },
+    { id: "delay", type: "delay", label: "Wait 2 hours", sub: "Delay", icon: "Clock", color: C.gray },
+    { id: "condition", type: "condition", label: "Customer replied?", sub: "Condition", icon: "GitBranch", color: C.amber },
+    { id: "yes", type: "action", label: "Transfer to human", sub: "YES", icon: "UserCog", color: C.jade },
+    { id: "no", type: "action", label: "Send follow-up", sub: "NO", icon: "Send", color: C.rust },
+  ];
+
+  const openAutomation = (automation) => {
+    const saved = Array.isArray(automation.flow?.nodes) ? automation.flow.nodes : [];
+    const merged = saved.length >= 4
+      ? saved.map((n, i) => ({
+          id: n.id || `node-${i}`,
+          type: n.type || "action",
+          label: n.label || "Step",
+          sub: n.sub || n.type || "Action",
+          icon: n.icon || (n.type === "trigger" ? "Zap" : "Send"),
+          color: n.color || (n.type === "trigger" ? C.blue : C.jade),
+        }))
+      : defaultNodes;
+    setFlowNodes(merged);
+    setNameDraft(automation.name || "");
+    setOpenBuilder(automation);
+  };
 
   const toggleStatus = async (automation) => {
     const next = automation.status === "Running" ? "Paused" : "Running";
     setBusy(true);
     try {
-      await apiFetch(`/automations/${automation.id}`, { method: "PATCH", token, body: { status: next } });
+      const updated = await apiFetch(`/automations/${automation.id}`, { method: "PATCH", token, body: { status: next } });
       automations.reload();
-      if (openBuilder?.id === automation.id) setOpenBuilder({ ...automation, status: next });
+      setOpenBuilder((current) => current?.id === automation.id ? { ...current, ...updated } : current);
+    } catch (err) {
+      alert(err.message || "Could not update automation status");
     } finally {
       setBusy(false);
     }
   };
 
+  const saveAutomation = async () => {
+    if (!openBuilder) return;
+    setBusy(true);
+    try {
+      const updated = await apiFetch(`/automations/${openBuilder.id}`, {
+        method: "PATCH",
+        token,
+        body: {
+          name: nameDraft.trim() || openBuilder.name,
+          flow: { nodes: flowNodes.map(({ id, type, label, sub, icon }) => ({ id, type, label, sub, icon })) },
+        },
+      });
+      setOpenBuilder({ ...openBuilder, ...updated });
+      setEditingNode(null);
+      automations.reload();
+    } catch (err) {
+      alert(err.message || "Could not save automation");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const iconMap = { Zap, Send, Clock, GitBranch, UserCog };
+
+  const editNode = (node) => {
+    setEditingNode(node.id);
+    setEditForm({ label: node.label, sub: node.sub || "" });
+  };
+
+  const saveNode = () => {
+    setFlowNodes((nodes) => nodes.map((n) => n.id === editingNode ? { ...n, label: editForm.label, sub: editForm.sub } : n));
+    setEditingNode(null);
+  };
+
   if (openBuilder) {
     return (
       <div>
-        <button onClick={() => setOpenBuilder(null)} className="flex items-center gap-1 text-[12px] font-medium mb-3" style={{ fontFamily: F.b, color: C.inkSoft }}><ChevronLeft size={14} /> Back to automations</button>
-        <PageHeader title={openBuilder.name} desc="Visual trigger → action flow (illustrative — activate/pause below is real)" action={
-          <PrimaryBtn disabled={busy} onClick={() => toggleStatus(openBuilder)}><span className="flex items-center gap-1.5"><Zap size={13} /> {openBuilder.status === "Running" ? "Pause" : "Activate"}</span></PrimaryBtn>
+        <button onClick={() => { setOpenBuilder(null); setEditingNode(null); }} className="flex items-center gap-1 text-[12px] font-medium mb-3" style={{ fontFamily: F.b, color: C.inkSoft }}><ChevronLeft size={14} /> Back to automations</button>
+        <PageHeader title="Edit automation" desc="Edit the automation name, timing/action labels, then save changes." action={
+          <div className="flex gap-2 flex-wrap justify-end">
+            <GhostBtn onClick={() => toggleStatus(openBuilder)}>{openBuilder.status === "Running" ? "Pause" : "Activate"}</GhostBtn>
+            <PrimaryBtn disabled={busy} onClick={saveAutomation}><span className="flex items-center gap-1.5"><Save size={13} /> {busy ? "Saving..." : "Save changes"}</span></PrimaryBtn>
+          </div>
         } />
-        <div style={{ background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8 }} className="flex flex-col items-center py-6">
-          <FlowNode label="New customer" sub="Trigger" color={C.blue} icon={Zap} />
-          <FlowArrow />
-          <FlowNode label="Send welcome message" sub="Text + image" color={C.jade} icon={Send} />
-          <FlowArrow />
-          <FlowNode label="Wait 2 hours" sub="Delay" color={C.gray} icon={Clock} />
-          <FlowArrow />
-          <FlowNode label="Customer replied?" sub="Condition" color={C.amber} icon={GitBranch} />
-          <div className="relay-flow-branches flex gap-10 mt-1">
-            <div className="flex flex-col items-center"><span className="text-[10px] font-semibold mb-1" style={{ fontFamily: F.b, color: C.jade }}>YES</span><div style={{ width: 1, height: 14, background: C.hairline }} /><FlowNode label="Transfer to human" color={C.jade} icon={UserCog} /></div>
-            <div className="flex flex-col items-center"><span className="text-[10px] font-semibold mb-1" style={{ fontFamily: F.b, color: C.rust }}>NO</span><div style={{ width: 1, height: 14, background: C.hairline }} /><FlowNode label="Send follow-up" color={C.rust} icon={Send} /></div>
+
+        <div className="mb-4" style={{ background: C.panel, border: `1px solid ${C.hairline}`, borderRadius: 8 }}>
+          <div className="px-4 py-3" style={{ borderBottom: `1px solid ${C.hairline}` }}>
+            <Field label="Automation name"><input style={inputStyle} value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} /></Field>
+          </div>
+          <div className="flex flex-col items-center py-6 px-3">
+            {flowNodes.map((node, index) => {
+              const Icon = iconMap[node.icon] || Send;
+              const isBranch = node.id === "yes" || node.id === "no";
+              return (
+                <React.Fragment key={node.id}>
+                  {index > 0 && <FlowArrow />}
+                  {isBranch ? null : (
+                    <div className="relay-flow-edit-row flex items-center gap-2">
+                      <FlowNode label={node.label} sub={node.sub} color={node.color} icon={Icon} />
+                      <button type="button" onClick={() => editNode(node)} className="p-2 shrink-0" title="Edit this step" aria-label={`Edit ${node.label}`} style={{ border: `1px solid ${C.hairline}`, borderRadius: 7, background: C.white }}><Pencil size={13} color={C.inkSoft} /></button>
+                    </div>
+                  )}
+                  {node.id === "condition" && (
+                    <div className="relay-flow-branches flex gap-10 mt-1">
+                      {flowNodes.filter((n) => n.id === "yes" || n.id === "no").map((branch) => {
+                        const BIcon = iconMap[branch.icon] || Send;
+                        return <div key={branch.id} className="flex flex-col items-center"><span className="text-[10px] font-semibold mb-1" style={{ fontFamily: F.b, color: branch.color }}>{branch.sub}</span><div style={{ width: 1, height: 14, background: C.hairline }} /><div className="relay-flow-edit-row flex items-center gap-2"><FlowNode label={branch.label} sub="Action" color={branch.color} icon={BIcon} /><button type="button" onClick={() => editNode(branch)} className="p-2 shrink-0" title="Edit action" aria-label={`Edit ${branch.label}`} style={{ border: `1px solid ${C.hairline}`, borderRadius: 7, background: C.white }}><Pencil size={13} color={C.inkSoft} /></button></div></div>;
+                      })}
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
+
+        {editingNode && (
+          <Modal title="Edit step" onClose={() => setEditingNode(null)} width={420}>
+            <Field label="Action / step"><input style={inputStyle} value={editForm.label} onChange={(e) => setEditForm({ ...editForm, label: e.target.value })} /></Field>
+            <Field label="Time / description"><input style={inputStyle} value={editForm.sub} onChange={(e) => setEditForm({ ...editForm, sub: e.target.value })} placeholder="e.g. Wait 2 hours or Text + image" /></Field>
+            <div className="flex gap-2 mt-4"><GhostBtn onClick={() => setEditingNode(null)}>Cancel</GhostBtn><PrimaryBtn onClick={saveNode}>Save step</PrimaryBtn></div>
+          </Modal>
+        )}
       </div>
     );
   }
@@ -1417,14 +1557,14 @@ function AutomationsPage() {
             const progress = a.recipients ? Math.round((a.sent / a.recipients) * 100) : 0;
             return (
               <tr key={a.id}>
-                <Td><button onClick={() => setOpenBuilder(a)} className="font-medium" style={{ color: C.ink }}>{a.name}</button></Td>
+                <Td><button onClick={() => openAutomation(a)} className="font-medium text-left" style={{ color: C.ink }}>{a.name}</button></Td>
                 <Td><StatusPill status={a.status} /></Td>
                 <Td mono>{a.recipients.toLocaleString()}</Td>
                 <Td mono>{a.sent.toLocaleString()}</Td>
                 <Td mono>{a.delivered.toLocaleString()}</Td>
                 <Td mono>{a.replies}</Td>
                 <Td><div className="flex items-center gap-2"><div style={{ width: 50, height: 5, background: C.hairlineSoft, borderRadius: 3 }}><div style={{ width: `${progress}%`, height: 5, background: C.jade, borderRadius: 3 }} /></div><span className="text-[10.5px]" style={{ fontFamily: F.m, color: C.inkSoft }}>{progress}%</span></div></Td>
-                <Td><button onClick={() => setOpenBuilder(a)} className="flex items-center gap-1 text-[11.5px] font-medium" style={{ fontFamily: F.b, color: C.jade }}>Open <ChevronRight size={12} /></button></Td>
+                <Td><div className="flex gap-1.5 items-center"><button type="button" onClick={() => toggleStatus(a)} disabled={busy} className="text-[11px] px-2 py-1" style={{ fontFamily: F.b, color: a.status === "Running" ? C.amber : C.jade, border: `1px solid ${a.status === "Running" ? C.amber : C.jade}`, borderRadius: 6 }}>{a.status === "Running" ? "Pause" : "Activate"}</button><button type="button" onClick={() => openAutomation(a)} className="text-[11px] px-2 py-1" style={{ fontFamily: F.b, color: C.jade, border: `1px solid ${C.jade}`, borderRadius: 6 }}>Edit</button></div></Td>
               </tr>
             );
           })}
